@@ -2,14 +2,12 @@
 import re
 import xlrd
 import xlwt
-
-# 这是新规则
+import linecache
 def new_judge_rules(line):
 	p1 = u'(无|谨防|未|警惕|注意|除外|如有).*血肿'
 	p2 = u'((硬膜|蛛网膜)(下|外).{0,3}血肿)|额部血肿'
 	p3 = u'(血肿.*(不除外|不能完全除外))|((继续|是否存在|不除外|不能完全除外).*血肿)|血肿大小|血肿变大可能|血肿范围是否扩大'
 	p4 = u'(血肿.*(未触及|可能性(小|不大)|除外))|血肿瘤'
-	# p5 = u'(防止.*血肿.*发生)|(形成.*血肿.*风险)|(以防.*血肿.*形成)|充血肿胀'
 	p5 = u'((防止|形成|以防).*血肿.*(发生|风险|形成))|充血肿胀'
 	if re.search(p3, line):
 		return str(1)
@@ -18,17 +16,18 @@ def new_judge_rules(line):
 	else:
 		return str(1)
 
-# 根据上面的pattern判断的各个语句的结果，来确定该病人是否患有血肿,但凡有一个语句判断为1，我们便病人认为患有血肿
+
+# 根据上面的pattern判断的各个语句的结果，来确定该病人是否患有血肿,但凡有一个语句判断为1，我们便认为病人患有血肿
 def is_patient_hematoma(judge_result):
 	if judge_result.count('1') > 0:
 		return 1
 	else:
 		return 0
 
-# 将1份病例先按“，”、“。”、“；”、“！”、“？”、“,”分句后，提取含有血肿的字段，获得句子scope
+# 将1份病例先按“，”、“。”、“；”、“！”、“？”分句后，提取含有血肿的字段，获得句子scope
 def emr_divide(text):
 	divide_list = []
-	for i in [u'，', u'。', u'；',u'？',u'！',u',']:
+	for i in [u'，', u'。', u'；',u'？',u'！']:
 		text = text.replace(i, '@')
 	text_list = text.split('@')
 	for i in text_list:
@@ -36,7 +35,7 @@ def emr_divide(text):
 			divide_list.append(i)
 	return divide_list
 
-
+# 1、如果我们的训练文档是excel文件：
 # 将text文档中的所有病历读入一个字典，keys是病历号，values是病历内容
 def read_excel(file):
 	data = xlrd.open_workbook(file)
@@ -72,7 +71,31 @@ def write_excel(file, result_file, emr_divide = emr_divide, judge_pattern = new_
 		m = m + n + 1
 	data.save(result_file)
 
-if __name__ == '__main__':
-	write_excel('20161014_hematoma_eval.xlsx', 'result.xlsx', emr_divide, new_judge_rules)
-	print "finished"
+#2、如果我们的训练文档是txt文档：
+def read_txt(file):
+	inf = open(file,"r")
+	linecount = len(inf.readlines())
+	texts = {i: linecache.getline(file, i).strip().decode('utf-8') for i in range(1, linecount + 1)}
+	inf.close()
+	return texts
+# print read_txt('20161014_hematoma_eval.txt')
 
+def write_txt(file,result_file,emr_divide = emr_divide, judge_pattern = new_judge_rules):
+	outf = open(result_file,"w") 
+	firstline = '原始行号'+"\t"+'是否血肿_patient'+"\t"+'句段scope'+"\t"+'是否血肿_scope'+"\n"
+	outf.write(firstline)
+	text = read_txt(file)		
+	for i in text.keys():
+		divide_text = emr_divide(text[i])
+		n = len(divide_text)
+		patient_result = []
+		for j in range(n):
+			patient_result.append(judge_pattern(divide_text[j]))
+			outf.write(str(i)+"\t"*2+ divide_text[j].encode('utf-8')+"\t"+str(judge_pattern(divide_text[j]))+"\n")	
+		outf.write(str(i)+"\t"+str(is_patient_hematoma(patient_result))+"\n")
+	outf.close()
+
+if __name__ == '__main__':
+	# write_excel('20161014_hematoma_eval.xlsx', 'result.xlsx')
+	# write_txt('20161014_hematoma_eval.txt', 'result.txt')
+	print "finished"
