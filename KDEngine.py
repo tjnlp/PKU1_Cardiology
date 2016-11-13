@@ -8,7 +8,7 @@
 import re
 import copy
 import types
-from extendKeyword import dealWithKeyWord
+# from extendKeyword import dealWithKeyWord
 
 class ExtractData():
     def __init__(self,sentence,knowledge):
@@ -37,7 +37,8 @@ class ExtractData():
             value_unit=knol['value_unit']
             
             #20160107 extend keywords to improve CLIPS
-            keywords = dealWithKeyWord(old_keywords)
+            # keywords = dealWithKeyWord(old_keywords)
+            kyewords = old_keywords
             
             for kw in keywords: #每个kw都是一个元组,由1个或多个词组成
                 kw_index=self.findKeywordIndex(sen,kw)
