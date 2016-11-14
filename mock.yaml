@@ -1,0 +1,31 @@
+血肿:
+  key_code: [cust_form_fd_teh47d, cust_form_fd_7opnfy, cust_form_fd_kfjtdv, cust_form_fd_9pdtje]
+  无:
+    code: '102'
+    keywords:
+    - !!python/tuple [血肿, 无]
+    - !!python/tuple [血肿, 否认]
+    - !!python/tuple [血肿, 拒绝]
+    negation: []
+    scope: [15, 15]
+    value_expression: []
+    value_type: false
+    value_unit: []
+  有:
+    code: '101'
+    keywords:
+    - !!python/tuple [血肿]
+    negation: [否认, 无, 没有, 未见, 不是, 拒绝, 未检测, 未监测]
+    scope: [15, 15]
+    value_expression: []
+    value_type: false
+    value_unit: []
+  大小:
+    code: '101'
+    keywords:
+    - !!python/tuple [血肿]
+    negation: []
+    scope: [15, 15]
+    value_expression: ['\d+']
+    value_type: true
+    value_unit: [cm]
