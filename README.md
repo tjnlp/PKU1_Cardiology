@@ -8,3 +8,4 @@ The inputs are stored in test.pos.txt and test.neg.txt. Each line for one input.
  test_reult.txt in following format: TYPE-LineNumber   Predict.
 
  Running eval.py will give out the system performance.
+
