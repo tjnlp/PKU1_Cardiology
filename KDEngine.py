@@ -8,7 +8,6 @@
 import re
 import copy
 import types
-
 # from extendKeyword import dealWithKeyWord
 
 class ExtractData():
@@ -39,7 +38,7 @@ class ExtractData():
             
             #20160107 extend keywords to improve CLIPS
             # keywords = dealWithKeyWord(old_keywords)
-            keywords = old_keywords
+            kyewords = old_keywords
             
             for kw in keywords: #每个kw都是一个元组,由1个或多个词组成
                 kw_index=self.findKeywordIndex(sen,kw)
@@ -181,21 +180,17 @@ class ExtractData():
 
 def test():
     import yaml
-    yaml_path='mock.yaml'
+    yaml_path='fake.yaml'
     f=open(yaml_path)
     knol=yaml.load(f)
     f.close()
     
-    sentence=u'包扎，可见3cm*5cm血肿，上覆冰袋，血肿处无明显压痛及血管搏动，近心端纱布卷加'
-    target=u'血肿'
+    sentence=u'冠脉造影呈右冠优势型150mm哈AAAAAAAAAAAAAAAAAAAAAA冠脉造影'
+    target=u'冠脉造影'
     knowledge={target:knol[target]}
     ed=ExtractData(sentence,knowledge)
-    
-    fout = open('mock.rlt', 'w')
-    for rlt in ed.res:
-        print rlt
-
+    for i in ed.res:
+        print i
 
 if __name__=='__main__':
-    
     test()
