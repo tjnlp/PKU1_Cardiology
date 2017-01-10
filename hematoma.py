@@ -3,6 +3,7 @@ import re
 import xlrd
 import xlwt
 import linecache
+from KDEngine import ExtractData
 def new_judge_rules(line):
 	p1 = u'(无|谨防|未|警惕|注意|除外|如有).*血肿'
 	p2 = u'((硬膜|蛛网膜)(下|外).{0,3}血肿)|额部血肿'
@@ -15,6 +16,18 @@ def new_judge_rules(line):
 		return str(0)
 	else:
 		return str(1)
+def new_judge_rules_ex(line):
+	p1 = u'(无|谨防|未|警惕|注意|除外|如有).*血肿'
+	p2 = u'((硬膜|蛛网膜)(下|外).{0,3}血肿)|额部血肿'
+	p3 = u'(血肿.*(不除外|不能完全除外))|((继续|是否存在|不除外|不能完全除外).*血肿)|血肿大小|血肿变大可能|血肿范围是否扩大'
+	p4 = u'(血肿.*(未触及|可能性(小|不大)|除外))|血肿瘤'
+	p5 = u'((防止|形成|以防).*血肿.*(发生|风险|形成))|充血肿胀'
+	if re.search(p3, line):
+		return 25, str(1)
+	elif u'血肿' not in line or re.search(p1, line) or re.search(p2, line)  or re.search(p4,line) or re.search(p5,line):
+		return 27, str(0)
+	else:
+		return 29, str(1)
 
 
 # 根据上面的pattern判断的各个语句的结果，来确定该病人是否患有血肿,但凡有一个语句判断为1，我们便认为病人患有血肿
@@ -94,8 +107,60 @@ def write_txt(file,result_file,emr_divide = emr_divide, judge_pattern = new_judg
 			outf.write(str(i)+"\t"*2+ divide_text[j].encode('utf-8')+"\t"+str(judge_pattern(divide_text[j]))+"\n")	
 		outf.write(str(i)+"\t"+str(is_patient_hematoma(patient_result))+"\n")
 	outf.close()
+	
+def splitSentence(sentence):
+	number = sentence.count(u'血')
+	indexList = [0]
+	for i in range(number):
+		print i
+		begin = indexList[i]
+		index = sentence.find(u'血', begin)
+		indexList.append(index + 1)
+	sentence_list = []
+	fout = open('log.txt', 'w')
+	for i in range(number):
+		begin = indexList[i]
+		if (i +2 ) >number:
+			end = len(sentence)
+		else:
+			end = indexList[i + 2] -1
+		segment = sentence[begin:end]
+		sentence_list.append(segment)
+		fout.write(segment.encode('utf8'))
+		fout.write('\n')
+	fout.close()
+	return sentence_list
+def test():
+	target=u'血肿'
+	
+	import yaml
+	yaml_path='mock.yaml'
+	f=open(yaml_path)
+	knol=yaml.load(f)
+	f.close()
+
+	knowledge={target:knol[target]}
+
+	sentence=u'包扎，可见3cm*5cm血肿，上覆冰袋，血肿处无明显压痛及血管搏动，近心端纱布卷加'
+	sentence=u'止血夹，局部伤口出血，且可见一2*8cm血肿，予局部压迫约10分钟，血肿较前减少，'
+	segments = splitSentence(sentence)
+	
+	results = []
+	fout = open('log.txt', 'a')
+	for segment in segments:
+		if int(new_judge_rules(segment)):
+			fout.write(segment.encode('utf8'))
+			fout.write('\t')
+			ed=ExtractData(segment,knowledge)
+			for rlt in ed.res:
+				print rlt['value']
+			fout.write('\n')
+
+
+
 
 if __name__ == '__main__':
 	# write_excel('20161014_hematoma_eval.xlsx', 'result.xlsx')
 	# write_txt('20161014_hematoma_eval.txt', 'result.txt')
+	test()
 	print "finished"
